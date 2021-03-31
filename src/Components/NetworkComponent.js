@@ -15,7 +15,7 @@ export default class NetworkComponent extends React.Component{
     }
 
     componentDidMount(){
-        this.graphics = createNetworkSystem(this.canvas.current, this.width(), this.height(), 55000);
+        this.graphics = createNetworkSystem(this.canvas.current, this.width(), this.height(), 55000, 55000);
         this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
         this.draw()
         window.addEventListener("resize", this.resize);

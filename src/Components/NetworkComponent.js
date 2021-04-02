@@ -2,6 +2,7 @@ import React from "react";
 import {createNetworkSystem} from "../Graphics/NetworkSystem";
 import TimedChunk from "../Datatypes/TimedChunk";
 import {updatePositionsFromScalar} from "../Graphics/Updates";
+import NavBar from "./NavBar";
 
 /**
  * Network component that handles the network canvas
@@ -23,7 +24,7 @@ export default class NetworkComponent extends React.Component{
     componentDidMount(){
         const w = this.width(); const h = this.height();
         this.setState({prevHeight: h, prevWidth: w});
-        this.graphics = createNetworkSystem(this.canvas.current, w, h, 55000, 55000);
+        this.graphics = createNetworkSystem(this.canvas.current, w, h, 100000, 150000);
         this.graphics.renderer.render(this.graphics.scene, this.graphics.camera);
         document.addEventListener("pointermove", this.pointerMove)
         window.addEventListener("resize", this.resize);
@@ -31,6 +32,7 @@ export default class NetworkComponent extends React.Component{
     }
 
     componentWillUnmount() {
+        window.removeEventListener("pointermove", this.pointerMove);
         window.removeEventListener("resize", this.resize);
     }
 
@@ -39,16 +41,22 @@ export default class NetworkComponent extends React.Component{
 
         //update intersection
         this.graphics.raycaster.setFromCamera(this.graphics.pointer, this.graphics.camera);
-        const intersects = this.graphics.raycaster.intersectObject(this.graphics.nodes);
+        const intersects = this.graphics.raycaster.intersectObjects(this.graphics.scene.children);
+
         if(intersects.length > 0){
-            console.log("intersects", intersects[0].point);
-            this.graphics.cursor.position.set(intersects[0].point);
             this.graphics.cursor.visible = true;
+            for(let i = 0; i < intersects.length; i++){
+                if (intersects[i].distance > 50){
+                    if(intersects[i].object !== this.graphics.cursor) {
+                        this.graphics.cursor.position.copy(intersects[i].point);
+                    }
+                    break;
+                }
+            }
 
         } else{
             this.graphics.cursor.visible = false;
         }
-
         window.requestAnimationFrame(() => this.animate());
     }
 
@@ -65,20 +73,22 @@ export default class NetworkComponent extends React.Component{
             this.setCanvas(w,h);
             this.graphics.camera.aspect = w/h;
             this.graphics.renderer.setSize(w,h);
-
         }
     }
 
     onPointerMove(e){
-        this.graphics.pointer.set( (e.clientX/ this.width())* 2 -1, (e.clientY/ this.height()) * 2 + 1);
+        if(this.canvas.current !== null){
+            this.graphics.pointer.x = ((e.clientX/ this.canvas.current.width)* 2) - 1 ;
+            this.graphics.pointer.y = ((e.clientY/ this.canvas.current.height) * -2) +1;
+        }
     }
 
     width(){
-        return window.innerWidth * 0.95;
+        return window.innerWidth-1;
     }
 
     height(){
-        return window.innerHeight * 0.95;
+        return window.innerHeight-5;
     }
 
     setCanvas(width, height){
@@ -88,8 +98,9 @@ export default class NetworkComponent extends React.Component{
 
 
     render(){
-        return(<div>
-            <canvas ref = {this.canvas} style = {{backgroundColor: "rgb(108,108,108)"}}/>
+        return(<div style ={{overflowX: "hidden", overflowY: "hidden"}}>
+
+            <canvas ref = {this.canvas} style = {{backgroundColor: "rgb(43,43,43)"}}/>
         </div>);
     }
 }

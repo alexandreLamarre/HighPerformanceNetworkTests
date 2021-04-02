@@ -23,7 +23,7 @@ export function createNetworkSystem(canvas, width, height, numV, numE){
     controls.update();
 
     const nodeScene = createNodesInScene(camera, numV, numE, width, height);
-    const rayCaster = new THREE.Raycaster()
+    const rayCaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
 
     //creating a highlight cursor
@@ -32,7 +32,7 @@ export function createNetworkSystem(canvas, width, height, numV, numE){
     const cursorMaterial = new THREE.MeshBasicMaterial( {color: 0xffff00} );
 
     const cursor = new THREE.Mesh(cursorGeometry, cursorMaterial);
-    cursor.position.set(0,0,0)
+    cursor.visible = false;
 
     nodeScene.scene.add(cursor);
 
@@ -91,13 +91,15 @@ export function createNodesInScene(camera, numV, numE, width, height){
     systemGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     const material = new THREE.PointsMaterial({vertexColors: true, size: 5});
     const nodes = new THREE.Points(systemGeometry, material);
+    nodes.geometry.computeBoundingSphere();
+    nodes.geometry.computeBoundingBox();
     scene.add(nodes);
 
     console.time("edges js");
     const connectionGeometry = new THREE.BufferGeometry();
     const edges = [];
     colors = []
-    for(let i = 0; i < 10; i++){
+    for(let i = 0; i < numE; i++){
         const vStart = Math.floor(Math.random()*numV);
         const vEnd = Math.floor(Math.random()*numV);
         edges.push(nodes.geometry.attributes.position.array[3 * vStart]);
@@ -135,6 +137,8 @@ export function createNodesInScene(camera, numV, numE, width, height){
     connectionGeometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
     const material2 = new THREE.MeshBasicMaterial({vertexColors: true, transparent: true, opacity: 0.3});
     const connections = new THREE.Line(connectionGeometry, material2);
+    connections.geometry.computeBoundingSphere();
+    connections.geometry.computeBoundingBox();
     scene.add(connections);
 
 
